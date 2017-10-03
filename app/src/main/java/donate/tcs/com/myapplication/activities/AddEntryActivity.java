@@ -1,6 +1,8 @@
 package donate.tcs.com.myapplication.activities;
 
+import android.arch.persistence.room.Room;
 import android.content.DialogInterface;
+import android.database.sqlite.SQLiteConstraintException;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -13,7 +15,9 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import donate.tcs.com.myapplication.AppUtils;
-import donate.tcs.com.myapplication.DatabaseHelper;
+import donate.tcs.com.myapplication.bean.DataEntry;
+import donate.tcs.com.myapplication.database.DataBaseRoomHelper;
+import donate.tcs.com.myapplication.database.DatabaseHelper;
 import donate.tcs.com.myapplication.R;
 
 /**
@@ -29,6 +33,7 @@ public class AddEntryActivity extends AppCompatActivity {
     private Button addButton;
 
     private String bloodGroup;
+    DataBaseRoomHelper db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,6 +46,8 @@ public class AddEntryActivity extends AppCompatActivity {
         addButton =  findViewById(R.id.add_entry_button);
 
         getSupportActionBar().setTitle("Add Entry");
+
+        db = DataBaseRoomHelper.getInstance(getApplicationContext());
 
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
                 R.array.blood_groups, android.R.layout.simple_spinner_item);
@@ -74,7 +81,8 @@ public class AddEntryActivity extends AppCompatActivity {
                     return;
                 }
 
-                insertDataToDatabase(empId, name, bloodGroup, phoneNumber );
+                //insertDataToDatabase(empId, name, bloodGroup, phoneNumber );
+                insertToRoomDb(empId, name, bloodGroup, phoneNumber );
 
             }
         });
@@ -93,6 +101,24 @@ public class AddEntryActivity extends AppCompatActivity {
         }
         long id = dbHelper.insertEntry(empId, name, bloodGroup, phoneNumber);
         AppUtils.updateIds(dbHelper.getExistingIds());
+
+        if(id > -1){
+            showDialog("Success", "You have been successfully added to the group");
+        }
+        else {
+            showDialog("Error", "Error occured. Please try  again.");
+        }
+    }
+
+    private  void insertToRoomDb(String empId, String name , String bloodGroup, String phoneNumber){
+        DataEntry dataEntry = new DataEntry(Long.valueOf(empId), name, empId, bloodGroup, phoneNumber);
+        long id = 0;
+        try {
+            id = db.dataEntryDao().insertEntry(dataEntry);
+        } catch (SQLiteConstraintException e) {
+            showDialog("Error", "Id already exists. Modify details is work in progress");
+            return;
+        }
 
         if(id > -1){
             showDialog("Success", "You have been successfully added to the group");

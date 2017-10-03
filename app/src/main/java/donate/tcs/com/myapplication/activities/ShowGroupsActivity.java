@@ -12,10 +12,12 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.TextView;
 
+import java.util.Arrays;
 import java.util.List;
 
 import donate.tcs.com.myapplication.bean.DataEntry;
-import donate.tcs.com.myapplication.DatabaseHelper;
+import donate.tcs.com.myapplication.database.DataBaseRoomHelper;
+import donate.tcs.com.myapplication.database.DatabaseHelper;
 import donate.tcs.com.myapplication.R;
 
 /**
@@ -28,7 +30,8 @@ public class ShowGroupsActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private TextView groupTitle;
     private DonorListAdapter mAdapter;
-    DatabaseHelper dbHelper;
+    //DatabaseHelper dbHelper;
+    DataBaseRoomHelper dataBaseRoomHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,7 +41,9 @@ public class ShowGroupsActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.recycler_view);
         groupTitle = findViewById(R.id.group_title);
         groupTitle.setText("All");
-        dbHelper = DatabaseHelper.getInstance(getApplicationContext());
+        //dbHelper = DatabaseHelper.getInstance(getApplicationContext());
+        dataBaseRoomHelper = DataBaseRoomHelper.getInstance(getApplicationContext());
+
         setRecyclerView();
     }
 
@@ -46,7 +51,7 @@ public class ShowGroupsActivity extends AppCompatActivity {
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
         recyclerView.setLayoutManager(mLayoutManager);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
-        mAdapter = new DonorListAdapter(dbHelper.getAllItems(), new DonorListAdapter.OnItemClickListener() {
+        mAdapter = new DonorListAdapter(Arrays.asList(dataBaseRoomHelper.dataEntryDao().getAllItems()), new DonorListAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(DataEntry item) {
 
@@ -81,11 +86,11 @@ public class ShowGroupsActivity extends AppCompatActivity {
                 dialog.dismiss();
                 List<DataEntry> itemsList;
                 if(which ==0 ){
-                    itemsList = dbHelper.getAllItems();
+                    itemsList = Arrays.asList(dataBaseRoomHelper.dataEntryDao().getAllItems());
                     groupTitle.setText("All");
                 }
                 else{
-                    itemsList = dbHelper.getItemForGroup(groups[which]);
+                    itemsList = Arrays.asList(dataBaseRoomHelper.dataEntryDao().getItemForGroup(groups[which]));
                     groupTitle.setText(groups[which]);
                 }
                 mAdapter.setItemsList(itemsList);
