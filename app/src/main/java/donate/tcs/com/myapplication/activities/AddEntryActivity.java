@@ -1,11 +1,9 @@
 package donate.tcs.com.myapplication.activities;
 
-import android.arch.persistence.room.Room;
 import android.content.DialogInterface;
 import android.database.sqlite.SQLiteConstraintException;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -14,8 +12,15 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
 import donate.tcs.com.myapplication.AppUtils;
-import donate.tcs.com.myapplication.bean.DataEntry;
+import donate.tcs.com.myapplication.bean.MemberDetails;
 import donate.tcs.com.myapplication.database.DataBaseRoomHelper;
 import donate.tcs.com.myapplication.database.DatabaseHelper;
 import donate.tcs.com.myapplication.R;
@@ -24,7 +29,7 @@ import donate.tcs.com.myapplication.R;
  * Created by 351863 on 27-09-2017.
  */
 
-public class AddEntryActivity extends AppCompatActivity {
+public class AddEntryActivity extends BaseActivity {
 
     private Spinner bloodTypesSpinner;
     private EditText nameEditText;
@@ -33,21 +38,25 @@ public class AddEntryActivity extends AppCompatActivity {
     private Button addButton;
 
     private String bloodGroup;
-    DataBaseRoomHelper db;
+    private DataBaseRoomHelper db;
+
+    private DatabaseReference mDatabase;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.add_entry_activity);
-        bloodTypesSpinner =  findViewById(R.id.blood_groups_list);
-        nameEditText =  findViewById(R.id.input_name);
-        empIdText =  findViewById(R.id.input_emp_id);
-        phoneNumberText =  findViewById(R.id.input_phone_number);
-        addButton =  findViewById(R.id.add_entry_button);
+        bloodTypesSpinner = findViewById(R.id.blood_groups_list);
+        nameEditText = findViewById(R.id.input_name);
+        empIdText = findViewById(R.id.input_emp_id);
+        phoneNumberText = findViewById(R.id.input_phone_number);
+        addButton = findViewById(R.id.add_entry_button);
 
         getSupportActionBar().setTitle("Add Entry");
 
         db = DataBaseRoomHelper.getInstance(getApplicationContext());
+
+        mDatabase = FirebaseDatabase.getInstance().getReference();
 
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
                 R.array.blood_groups, android.R.layout.simple_spinner_item);
@@ -55,10 +64,12 @@ public class AddEntryActivity extends AppCompatActivity {
         bloodTypesSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
-                bloodGroup =  adapterView.getItemAtPosition(position).toString();
+                bloodGroup = adapterView.getItemAtPosition(position).toString();
             }
+
             @Override
-            public void onNothingSelected(AdapterView<?> adapterView) {}
+            public void onNothingSelected(AdapterView<?> adapterView) {
+            }
         });
 
         addButton.setOnClickListener(new View.OnClickListener() {
@@ -68,21 +79,22 @@ public class AddEntryActivity extends AppCompatActivity {
                 String name = nameEditText.getText().toString();
                 String empId = empIdText.getText().toString();
                 String phoneNumber = phoneNumberText.getText().toString();
-                if(name.isEmpty()){
-                   Toast.makeText(AddEntryActivity.this,"Please enter the name", Toast.LENGTH_SHORT).show();
-                   return;
-                }
-                if(empId.isEmpty()){
-                    Toast.makeText(AddEntryActivity.this,"Please enter the employee id", Toast.LENGTH_SHORT).show();
+                if (name.isEmpty()) {
+                    Toast.makeText(AddEntryActivity.this, "Please enter the name", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                if(bloodGroup.isEmpty() || bloodGroup.equalsIgnoreCase("select")){
-                    Toast.makeText(AddEntryActivity.this,"Blood Group is mandatory. Please select one", Toast.LENGTH_SHORT).show();
+                if (empId.isEmpty()) {
+                    Toast.makeText(AddEntryActivity.this, "Please enter the employee id", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if (bloodGroup.isEmpty() || bloodGroup.equalsIgnoreCase("select")) {
+                    Toast.makeText(AddEntryActivity.this, "Blood Group is mandatory. Please select one", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
                 //insertDataToDatabase(empId, name, bloodGroup, phoneNumber );
-                insertToRoomDb(empId, name, bloodGroup, phoneNumber );
+                //insertToRoomDb(empId, name, bloodGroup, phoneNumber );
+                insertToFirebaseDb(empId, name, bloodGroup, phoneNumber);
 
             }
         });
@@ -93,43 +105,82 @@ public class AddEntryActivity extends AppCompatActivity {
         super.onResume();
     }
 
-    private void insertDataToDatabase(String empId, String name , String bloodGroup, String phoneNumber ){
-        DatabaseHelper dbHelper = DatabaseHelper.getInstance(getApplicationContext());
-        if(AppUtils.idExists(empId)){
-            showDialog("Error", "Id already exists. Modify details is work in progress");
-            return;
-        }
-        long id = dbHelper.insertEntry(empId, name, bloodGroup, phoneNumber);
-        AppUtils.updateIds(dbHelper.getExistingIds());
+    private void insertToFirebaseDb(String empId, String name, String bloodGroup, String phoneNumber) {
+        MemberDetails memberDetails = new MemberDetails(Long.valueOf(empId), name, empId, bloodGroup, phoneNumber);
 
-        if(id > -1){
-            showDialog("Success", "You have been successfully added to the group");
-        }
-        else {
-            showDialog("Error", "Error occured. Please try  again.");
-        }
+        mDatabase.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                hideProgressDialog();
+                showDialog("Success", "You have been successfully added to the group");
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+
+            public void onDataChange(DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                hideProgressDialog();
+                showDialog("Error", "Error occured. Please try  again.");
+            }
+        });
+
+        showProgressDialog();
+
+        mDatabase.child("memberslist").child(memberDetails.employeeId).setValue(memberDetails);
     }
 
-    private  void insertToRoomDb(String empId, String name , String bloodGroup, String phoneNumber){
-        DataEntry dataEntry = new DataEntry(Long.valueOf(empId), name, empId, bloodGroup, phoneNumber);
-        long id = 0;
-        try {
-            id = db.dataEntryDao().insertEntry(dataEntry);
-        } catch (SQLiteConstraintException e) {
-            showDialog("Error", "Id already exists. Modify details is work in progress");
-            return;
-        }
+//    private void insertDataToDatabase(String empId, String name, String bloodGroup, String phoneNumber) {
+//        DatabaseHelper dbHelper = DatabaseHelper.getInstance(getApplicationContext());
+//        if (AppUtils.idExists(empId)) {
+//            showDialog("Error", "Id already exists. Modify details is work in progress");
+//            return;
+//        }
+//        long id = dbHelper.insertEntry(empId, name, bloodGroup, phoneNumber);
+//        AppUtils.updateIds(dbHelper.getExistingIds());
+//
+//        if (id > -1) {
+//            showDialog("Success", "You have been successfully added to the group");
+//        } else {
+//            showDialog("Error", "Error occured. Please try  again.");
+//        }
+//    }
+//
+//    private void insertToRoomDb(String empId, String name, String bloodGroup, String phoneNumber) {
+//        MemberDetails memberDetails = new MemberDetails(Long.valueOf(empId), name, empId, bloodGroup, phoneNumber);
+//        long id = 0;
+//        try {
+//            id = db.dataEntryDao().insertEntry(memberDetails);
+//        } catch (SQLiteConstraintException e) {
+//            showDialog("Error", "Id already exists. Modify details is work in progress");
+//            return;
+//        }
+//
+//        if (id > -1) {
+//            showDialog("Success", "You have been successfully added to the group");
+//        } else {
+//            showDialog("Error", "Error occured. Please try  again.");
+//        }
+//    }
 
-        if(id > -1){
-            showDialog("Success", "You have been successfully added to the group");
-        }
-        else {
-            showDialog("Error", "Error occured. Please try  again.");
-        }
-    }
 
-
-    private  void showDialog(String title, String message){
+    private void showDialog(String title, String message) {
         AlertDialog alertDialog = new AlertDialog.Builder(AddEntryActivity.this).create();
         alertDialog.setTitle(title);
         alertDialog.setMessage(message);

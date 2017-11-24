@@ -8,7 +8,7 @@ import android.widget.TextView;
 
 import java.util.List;
 
-import donate.tcs.com.myapplication.bean.DataEntry;
+import donate.tcs.com.myapplication.bean.MemberDetails;
 import donate.tcs.com.myapplication.R;
 
 /**
@@ -18,10 +18,10 @@ import donate.tcs.com.myapplication.R;
 public class DonorListAdapter extends RecyclerView.Adapter<DonorListAdapter.MyViewHolder> {
 
     public interface OnItemClickListener {
-        void onItemClick(DataEntry item);
+        void onItemClick(MemberDetails item);
     }
 
-    private List<DataEntry> itemsList;
+    private List<MemberDetails> itemsList;
     private OnItemClickListener listener;
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
@@ -29,20 +29,20 @@ public class DonorListAdapter extends RecyclerView.Adapter<DonorListAdapter.MyVi
 
         public MyViewHolder(View view) {
             super(view);
-            name =  view.findViewById(R.id.name);
-            id =  view.findViewById(R.id.empid);
+            name = view.findViewById(R.id.name);
+            id = view.findViewById(R.id.empid);
             bloodGroup = view.findViewById(R.id.group);
-            phoneNumber =  view.findViewById(R.id.contact_number);
+            phoneNumber = view.findViewById(R.id.contact_number);
         }
     }
 
 
-    public DonorListAdapter(List<DataEntry> donorsList, OnItemClickListener listener) {
+    public DonorListAdapter(List<MemberDetails> donorsList, OnItemClickListener listener) {
         this.itemsList = donorsList;
         this.listener = listener;
     }
 
-    public void setItemsList(List<DataEntry> itemsList) {
+    public void setItemsList(List<MemberDetails> itemsList) {
         this.itemsList = itemsList;
         notifyDataSetChanged();
     }
@@ -57,16 +57,17 @@ public class DonorListAdapter extends RecyclerView.Adapter<DonorListAdapter.MyVi
 
     @Override
     public void onBindViewHolder(MyViewHolder holder, int position) {
-        final DataEntry item = itemsList.get(position);
+        final MemberDetails item = itemsList.get(position);
         holder.name.setText(item.name);
-        holder.id.setText(item.employeeId);
+        holder.id.setText("Emp ID: " + item.employeeId);
         holder.bloodGroup.setText(item.bloodGroup);
-        if(item.phoneNumber != null){
-            holder.phoneNumber.setText(item.phoneNumber);
+        if (item.phoneNumber != null) {
+            holder.phoneNumber.setText("Phone: " + item.phoneNumber);
         }
 
         holder.itemView.setOnClickListener(new View.OnClickListener() {
-            @Override public void onClick(View v) {
+            @Override
+            public void onClick(View v) {
                 listener.onItemClick(item);
             }
         });

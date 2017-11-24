@@ -12,7 +12,7 @@ import nl.qbusict.cupboard.annotation.Index;
  */
 
 @Entity
-public class DataEntry {
+public class MemberDetails {
 
     @PrimaryKey
     @NonNull
@@ -23,11 +23,11 @@ public class DataEntry {
     public String phoneNumber;
 
 
-    public DataEntry() {
+    public MemberDetails() {
     }
 
     @Ignore
-    public DataEntry(Long id, String name, String employeeId, String bloodGroup, String phoneNumber) {
+    public MemberDetails(Long id, String name, String employeeId, String bloodGroup, String phoneNumber) {
         this._id = id;
         this.name = name;
         this.employeeId = employeeId;

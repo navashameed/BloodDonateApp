@@ -1,30 +1,31 @@
 package donate.tcs.com.myapplication.activities;
 
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.View;
+import android.support.annotation.Nullable;
 
-import donate.tcs.com.myapplication.R;
+import donate.tcs.com.myapplication.Constants;
+import donate.tcs.com.myapplication.utils.Preferences;
 
-public class MainActivity extends AppCompatActivity {
+/**
+ * Created by navas on 11/10/17.
+ */
+
+public class MainActivity extends BaseActivity {
+
+    Preferences preferences;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-    }
+        preferences = new Preferences(getApplicationContext());
+        if(preferences.readBoolean(Constants.IS_LOGGED_INTO_APP)){
+            startActivity(new Intent(this, ActionsListActivity.class));
+        }
+        else{
+            startActivity(new Intent(this, LogInActivity.class));
+        }
+        finish();
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-    }
-
-    public void onSeeListClicked(View v){
-        startActivity(new Intent(this, ShowGroupsActivity.class));
-    }
-
-    public void onAddEntryClicked(View v){
-        startActivity(new Intent(this, AddEntryActivity.class));
     }
 }

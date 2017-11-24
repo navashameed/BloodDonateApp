@@ -7,7 +7,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import java.util.ArrayList;
 import java.util.List;
 
-import donate.tcs.com.myapplication.bean.DataEntry;
+import donate.tcs.com.myapplication.bean.MemberDetails;
 
 import static nl.qbusict.cupboard.CupboardFactory.cupboard;
 
@@ -35,7 +35,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     static {
         // register our models
-        cupboard().register(DataEntry.class);
+        cupboard().register(MemberDetails.class);
     }
 
     @Override
@@ -54,16 +54,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     public long insertEntry(String empId, String name , String bloodGroup, String phoneNumber){
-        DataEntry dataEntry = new DataEntry(Long.valueOf(empId), name, empId, bloodGroup, phoneNumber);
-        return cupboard().withDatabase(getWritableDatabase()).put(dataEntry);
+        MemberDetails memberDetails = new MemberDetails(Long.valueOf(empId), name, empId, bloodGroup, phoneNumber);
+        return cupboard().withDatabase(getWritableDatabase()).put(memberDetails);
     }
 
-    public List<DataEntry> getItemForGroup(String bloodGroup){
-       return cupboard().withDatabase(getReadableDatabase()).query(DataEntry.class).withSelection( "bloodGroup = ?", bloodGroup).list();
+    public List<MemberDetails> getItemForGroup(String bloodGroup){
+       return cupboard().withDatabase(getReadableDatabase()).query(MemberDetails.class).withSelection( "bloodGroup = ?", bloodGroup).list();
     }
 
-    public List<DataEntry> getAllItems(){
-        return  cupboard().withDatabase(getReadableDatabase()).query(DataEntry.class).list();
+    public List<MemberDetails> getAllItems(){
+        return  cupboard().withDatabase(getReadableDatabase()).query(MemberDetails.class).list();
     }
 
     public int getItemCount(String bloodGroup){
@@ -73,8 +73,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public List<String> getExistingIds(){
         List<String> idsList = new ArrayList<>();
         idsList.clear();
-        List<DataEntry> dataEntryList = cupboard().withDatabase(getReadableDatabase()).query(DataEntry.class).list();
-        for(DataEntry entry: dataEntryList){
+        List<MemberDetails> memberDetailsList = cupboard().withDatabase(getReadableDatabase()).query(MemberDetails.class).list();
+        for(MemberDetails entry: memberDetailsList){
            idsList.add(entry.employeeId);
         }
         return idsList;

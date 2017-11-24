@@ -5,13 +5,13 @@ import android.arch.persistence.room.Room;
 import android.arch.persistence.room.RoomDatabase;
 import android.content.Context;
 
-import donate.tcs.com.myapplication.bean.DataEntry;
+import donate.tcs.com.myapplication.bean.MemberDetails;
 
 /**
  * Created by 351863 on 29-09-2017.
  */
 
-@Database(entities = {DataEntry.class}, version = 1)
+@Database(entities = {MemberDetails.class}, version = 1)
 public abstract class DataBaseRoomHelper extends RoomDatabase {
     private static DataBaseRoomHelper dataBaseRoomHelper;
 

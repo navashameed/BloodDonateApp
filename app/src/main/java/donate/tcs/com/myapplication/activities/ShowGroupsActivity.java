@@ -3,7 +3,6 @@ package donate.tcs.com.myapplication.activities;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -11,27 +10,39 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
-import donate.tcs.com.myapplication.bean.DataEntry;
+import donate.tcs.com.myapplication.bean.MemberDetails;
 import donate.tcs.com.myapplication.database.DataBaseRoomHelper;
-import donate.tcs.com.myapplication.database.DatabaseHelper;
 import donate.tcs.com.myapplication.R;
 
 /**
  * Created by 351863 on 27-09-2017.
  */
 
-public class ShowGroupsActivity extends AppCompatActivity {
+public class ShowGroupsActivity extends BaseActivity {
 
-    private final String [] groups = {"All", "A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"};
+    private final String[] groups = {"All", "A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"};
     private RecyclerView recyclerView;
     private TextView groupTitle;
     private DonorListAdapter mAdapter;
     //DatabaseHelper dbHelper;
     DataBaseRoomHelper dataBaseRoomHelper;
+    final List<MemberDetails> memberDetailsList = new ArrayList<>();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,17 +58,42 @@ public class ShowGroupsActivity extends AppCompatActivity {
         setRecyclerView();
     }
 
-    private void setRecyclerView(){
+    private void setRecyclerView() {
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
         recyclerView.setLayoutManager(mLayoutManager);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
-        mAdapter = new DonorListAdapter(Arrays.asList(dataBaseRoomHelper.dataEntryDao().getAllItems()), new DonorListAdapter.OnItemClickListener() {
+        setData();
+        mAdapter = new DonorListAdapter(memberDetailsList, new DonorListAdapter.OnItemClickListener() {
             @Override
-            public void onItemClick(DataEntry item) {
+            public void onItemClick(MemberDetails item) {
 
             }
         });
         recyclerView.setAdapter(mAdapter);
+    }
+
+    private void setData() {
+        DatabaseReference myRef = FirebaseDatabase.getInstance().getReference("memberslist");
+        showProgressDialog();
+        myRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                hideProgressDialog();
+                memberDetailsList.clear();
+                for (DataSnapshot postSnapshot : snapshot.getChildren()) {
+                    MemberDetails memberDetails = postSnapshot.getValue(MemberDetails.class);
+                    memberDetailsList.add(memberDetails);
+                }
+                sortList(memberDetailsList);
+                mAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                hideProgressDialog();
+                Toast.makeText(ShowGroupsActivity.this, "Failed fetching details from db.", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override
@@ -77,25 +113,59 @@ public class ShowGroupsActivity extends AppCompatActivity {
         return true;
     }
 
-    private void showFilters(){
+    private void showFilters() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Pick a group");
         builder.setItems(groups, new DialogInterface.OnClickListener() {
             @Override
-            public void onClick(DialogInterface dialog, int which) {
+            public void onClick(DialogInterface dialog, final int which) {
                 dialog.dismiss();
-                List<DataEntry> itemsList;
-                if(which ==0 ){
-                    itemsList = Arrays.asList(dataBaseRoomHelper.dataEntryDao().getAllItems());
+                List<MemberDetails> itemsList;
+                if (which == 0) {
+                    //itemsList = Arrays.asList(dataBaseRoomHelper.dataEntryDao().getAllItems());
+                    setData();
                     groupTitle.setText("All");
-                }
-                else{
-                    itemsList = Arrays.asList(dataBaseRoomHelper.dataEntryDao().getItemForGroup(groups[which]));
+                } else {
+                    //itemsList = Arrays.asList(dataBaseRoomHelper.dataEntryDao().getItemForGroup(groups[which]));
+                    DatabaseReference myRef = FirebaseDatabase.getInstance().getReference("memberslist");
+                    showProgressDialog();
+                    myRef.addValueEventListener(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot snapshot) {
+                            hideProgressDialog();
+                            memberDetailsList.clear();
+                            for (DataSnapshot postSnapshot : snapshot.getChildren()) {
+                                MemberDetails memberDetails = postSnapshot.getValue(MemberDetails.class);
+                                if (memberDetails.bloodGroup.equalsIgnoreCase(groups[which])) {
+                                    memberDetailsList.add(memberDetails);
+                                }
+                            }
+                            sortList(memberDetailsList);
+                            mAdapter.notifyDataSetChanged();
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+                            hideProgressDialog();
+                            Toast.makeText(ShowGroupsActivity.this, "Failed fetching details from db.", Toast.LENGTH_SHORT).show();
+                        }
+                    });
                     groupTitle.setText(groups[which]);
                 }
-                mAdapter.setItemsList(itemsList);
+                //mAdapter.setItemsList(itemsList);
             }
         });
         builder.show();
+    }
+
+    private void sortList(List<MemberDetails> list) {
+//        Collections.sort(list, new Comparator() {
+//
+//            public int compare(Object o1, Object o2) {
+//                MemberDetails m1 = (MemberDetails) o1;
+//                MemberDetails m2 = (MemberDetails) o2;
+//                return m1.name.compareToIgnoreCase(m2.name);
+//            }
+//        });
     }
 }

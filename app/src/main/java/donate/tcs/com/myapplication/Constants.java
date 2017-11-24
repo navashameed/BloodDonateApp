@@ -6,4 +6,5 @@ package donate.tcs.com.myapplication;
 
 public class Constants {
     public final String[] bloodGroupTypes = {"Select", "A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"};
+    public static final String IS_LOGGED_INTO_APP = "IsLoggedIn";
 }
