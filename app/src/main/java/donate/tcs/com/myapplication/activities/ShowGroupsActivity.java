@@ -1,7 +1,9 @@
 package donate.tcs.com.myapplication.activities;
 
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
@@ -12,6 +14,7 @@ import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.ajts.androidmads.library.SQLiteToExcel;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -19,6 +22,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -63,6 +67,12 @@ public class ShowGroupsActivity extends BaseActivity {
         recyclerView.setLayoutManager(mLayoutManager);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         setData();
+        Collections.sort(memberDetailsList, new Comparator<MemberDetails>() {
+            @Override
+            public int compare(MemberDetails memberDetails, MemberDetails t1) {
+                return memberDetails.name.compareTo(t1.name);
+            }
+        });
         mAdapter = new DonorListAdapter(memberDetailsList, new DonorListAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(MemberDetails item) {
@@ -108,6 +118,10 @@ public class ShowGroupsActivity extends BaseActivity {
         switch (item.getItemId()) {
             case R.id.action_filter:
                 showFilters();
+                break;
+
+            case R.id.action_add:
+                startActivity(new Intent(this, AddEntryActivity.class).putExtra("aaa", "aaa"));
                 break;
         }
         return true;
@@ -167,5 +181,32 @@ public class ShowGroupsActivity extends BaseActivity {
 //                return m1.name.compareToIgnoreCase(m2.name);
 //            }
 //        });
+    }
+
+
+    private void convertDbToExcel() {
+        String directory_path = Environment.getExternalStorageDirectory().getPath() + "/Backup/";
+        File file = new File(directory_path);
+        if (!file.exists()) {
+            file.mkdirs();
+        }
+        // Export SQLite DB as EXCEL FILE
+        SQLiteToExcel sqliteToExcel = new SQLiteToExcel(getApplicationContext(), "blood_donor_list", directory_path);
+        sqliteToExcel.exportAllTables("users.xls", new SQLiteToExcel.ExportListener() {
+            @Override
+            public void onStart() {
+
+            }
+
+            @Override
+            public void onCompleted(String filePath) {
+                System.out.println("completed converting");
+            }
+
+            @Override
+            public void onError(Exception e) {
+
+            }
+        });
     }
 }

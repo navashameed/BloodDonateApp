@@ -105,14 +105,23 @@ public class AddEntryActivity extends BaseActivity {
         super.onResume();
     }
 
-    private void insertToFirebaseDb(String empId, String name, String bloodGroup, String phoneNumber) {
+    private void insertToFirebaseDb(String empId, final String name, String bloodGroup, String phoneNumber) {
         MemberDetails memberDetails = new MemberDetails(Long.valueOf(empId), name, empId, bloodGroup, phoneNumber);
 
         mDatabase.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 hideProgressDialog();
-                showDialog("Success", "You have been successfully added to the group");
+
+                if(getIntent().getExtras().containsKey("aaa")){
+                    finish();
+                    Toast.makeText(AddEntryActivity.this,
+                            "User added successfully",
+                            Toast.LENGTH_SHORT).show();
+                }
+                else{
+                    showDialog("Success", "User " +"'"+name+ "'"+ " successfully added to the group");
+                }
             }
 
             @Override

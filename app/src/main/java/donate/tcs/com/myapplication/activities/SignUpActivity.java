@@ -5,14 +5,17 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 import donate.tcs.com.myapplication.Constants;
 import donate.tcs.com.myapplication.R;
@@ -25,7 +28,7 @@ public class SignUpActivity extends BaseActivity {
     protected Button signUpButton;
     private FirebaseAuth mFirebaseAuth;
     private Preferences preferences;
-
+    FirebaseAuth.AuthStateListener mAuthListener;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -37,6 +40,23 @@ public class SignUpActivity extends BaseActivity {
         passwordEditText = findViewById(R.id.passwordField);
         emailEditText = findViewById(R.id.emailField);
         signUpButton = findViewById(R.id.signupButton);
+
+        mAuthListener = new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+                FirebaseUser user = firebaseAuth.getCurrentUser();
+                if (user != null) {
+                    // User is signed in
+                    // NOTE: this Activity should get onpen only when the user is not signed in, otherwise
+                    // the user will receive another verification email.
+                    sendEmailVerification();
+                } else {
+                    // User is signed out
+
+                }
+                // ...
+            }
+        };
 
         signUpButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -60,12 +80,8 @@ public class SignUpActivity extends BaseActivity {
                                 @Override
                                 public void onComplete(@NonNull Task<AuthResult> task) {
                                     if (task.isSuccessful()) {
-                                        preferences = new Preferences(getApplicationContext());
-                                        preferences.saveBoolean(Constants.IS_LOGGED_INTO_APP, true);
-                                        Intent intent = new Intent(SignUpActivity.this, ActionsListActivity.class);
-                                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                                        startActivity(intent);
+
+                                        System.out.println("");
                                     } else {
                                         AlertDialog.Builder builder = new AlertDialog.Builder(SignUpActivity.this);
                                         builder.setMessage(task.getException().getMessage())
@@ -80,5 +96,53 @@ public class SignUpActivity extends BaseActivity {
             }
         });
     }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        mFirebaseAuth.addAuthStateListener(mAuthListener);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (mAuthListener != null) {
+            mFirebaseAuth.removeAuthStateListener(mAuthListener);
+        }
+    }
+
+    private void sendEmailVerification() {
+
+        // Send verification email
+        // [START send_email_verification]
+        final FirebaseUser user = mFirebaseAuth.getCurrentUser();
+        user.sendEmailVerification()
+                .addOnCompleteListener(this, new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+
+                        if (task.isSuccessful()) {
+                            Toast.makeText(SignUpActivity.this,
+                                    "Verification email sent to " + user.getEmail(),
+                                    Toast.LENGTH_SHORT).show();
+//                            preferences = new Preferences(getApplicationContext());
+//                            preferences.saveBoolean(Constants.IS_LOGGED_INTO_APP, true);
+                            FirebaseAuth.getInstance().signOut();
+                            Intent intent = new Intent(SignUpActivity.this, LogInActivity.class);
+                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                            startActivity(intent);
+                        } else {
+                            Log.e("", "sendEmailVerification", task.getException());
+                            Toast.makeText(SignUpActivity.this,
+                                    "Failed to send verification email.",
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                        // [END_EXCLUDE]
+                    }
+                });
+        // [END send_email_verification]
+    }
+
 
 }

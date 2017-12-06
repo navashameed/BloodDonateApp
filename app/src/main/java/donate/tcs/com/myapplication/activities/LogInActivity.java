@@ -9,11 +9,13 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 import donate.tcs.com.myapplication.Constants;
 import donate.tcs.com.myapplication.R;
@@ -71,12 +73,18 @@ public class LogInActivity extends BaseActivity {
                                 @Override
                                 public void onComplete(@NonNull Task<AuthResult> task) {
                                     if (task.isSuccessful()) {
-                                        preferences = new Preferences(getApplicationContext());
-                                        preferences.saveBoolean(Constants.IS_LOGGED_INTO_APP, true);
-                                        Intent intent = new Intent(LogInActivity.this, ActionsListActivity.class);
-                                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                                        startActivity(intent);
+
+                                        if (checkIfEmailVerified()) {
+                                            preferences = new Preferences(getApplicationContext());
+                                            preferences.saveBoolean(Constants.IS_LOGGED_INTO_APP, true);
+                                            Intent intent = new Intent(LogInActivity.this, ActionsListActivity.class);
+                                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                            startActivity(intent);
+                                        } else {
+                                            Toast.makeText(LogInActivity.this, "E-mail not verified. Please verify your e-mail", Toast.LENGTH_SHORT).show();
+                                            FirebaseAuth.getInstance().signOut();
+                                        }
 
                                     } else {
                                         AlertDialog.Builder builder = new AlertDialog.Builder(LogInActivity.this);
@@ -91,5 +99,10 @@ public class LogInActivity extends BaseActivity {
                 }
             }
         });
+    }
+
+    private boolean checkIfEmailVerified() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        return user.isEmailVerified();
     }
 }

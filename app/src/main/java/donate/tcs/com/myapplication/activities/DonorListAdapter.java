@@ -24,7 +24,7 @@ public class DonorListAdapter extends RecyclerView.Adapter<DonorListAdapter.MyVi
     private List<MemberDetails> itemsList;
     private OnItemClickListener listener;
 
-    public class MyViewHolder extends RecyclerView.ViewHolder {
+    public static class MyViewHolder extends RecyclerView.ViewHolder {
         public TextView name, id, bloodGroup, phoneNumber;
 
         public MyViewHolder(View view) {

@@ -11,7 +11,7 @@ import donate.tcs.com.myapplication.bean.MemberDetails;
  * Created by 351863 on 29-09-2017.
  */
 
-@Database(entities = {MemberDetails.class}, version = 1)
+@Database(entities = {MemberDetails.class}, version = 1, exportSchema = false)
 public abstract class DataBaseRoomHelper extends RoomDatabase {
     private static DataBaseRoomHelper dataBaseRoomHelper;
 
