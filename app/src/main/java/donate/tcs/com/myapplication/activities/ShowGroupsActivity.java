@@ -67,12 +67,6 @@ public class ShowGroupsActivity extends BaseActivity {
         recyclerView.setLayoutManager(mLayoutManager);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         setData();
-        Collections.sort(memberDetailsList, new Comparator<MemberDetails>() {
-            @Override
-            public int compare(MemberDetails memberDetails, MemberDetails t1) {
-                return memberDetails.name.compareTo(t1.name);
-            }
-        });
         mAdapter = new DonorListAdapter(memberDetailsList, new DonorListAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(MemberDetails item) {
@@ -94,7 +88,7 @@ public class ShowGroupsActivity extends BaseActivity {
                     MemberDetails memberDetails = postSnapshot.getValue(MemberDetails.class);
                     memberDetailsList.add(memberDetails);
                 }
-                sortList(memberDetailsList);
+                sortList();
                 mAdapter.notifyDataSetChanged();
             }
 
@@ -154,7 +148,7 @@ public class ShowGroupsActivity extends BaseActivity {
                                     memberDetailsList.add(memberDetails);
                                 }
                             }
-                            sortList(memberDetailsList);
+                            sortList();
                             mAdapter.notifyDataSetChanged();
                         }
 
@@ -172,15 +166,13 @@ public class ShowGroupsActivity extends BaseActivity {
         builder.show();
     }
 
-    private void sortList(List<MemberDetails> list) {
-//        Collections.sort(list, new Comparator() {
-//
-//            public int compare(Object o1, Object o2) {
-//                MemberDetails m1 = (MemberDetails) o1;
-//                MemberDetails m2 = (MemberDetails) o2;
-//                return m1.name.compareToIgnoreCase(m2.name);
-//            }
-//        });
+    private void sortList() {
+        Collections.sort(memberDetailsList, new Comparator<MemberDetails>() {
+            @Override
+            public int compare(MemberDetails memberDetails, MemberDetails t1) {
+                return memberDetails.name.compareTo(t1.name);
+            }
+        });
     }
 
 

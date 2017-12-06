@@ -113,7 +113,7 @@ public class AddEntryActivity extends BaseActivity {
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 hideProgressDialog();
 
-                if(getIntent().getExtras().containsKey("aaa")){
+                if(getIntent().getExtras() !=null && getIntent().getExtras().containsKey("aaa")){
                     finish();
                     Toast.makeText(AddEntryActivity.this,
                             "User added successfully",
