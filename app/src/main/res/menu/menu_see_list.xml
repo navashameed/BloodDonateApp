@@ -4,7 +4,6 @@
 
     <item
         android:id="@+id/action_filter"
-        android:orderInCategory="100"
         app:showAsAction="always"
         android:icon="@drawable/ic_filter_action"
         android:title="Refresh"/>
