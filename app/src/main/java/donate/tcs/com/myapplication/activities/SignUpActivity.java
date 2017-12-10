@@ -75,10 +75,12 @@ public class SignUpActivity extends BaseActivity {
                     AlertDialog dialog = builder.create();
                     dialog.show();
                 } else {
+                    showProgressDialog();
                     mFirebaseAuth.createUserWithEmailAndPassword(email, password)
                             .addOnCompleteListener(SignUpActivity.this, new OnCompleteListener<AuthResult>() {
                                 @Override
                                 public void onComplete(@NonNull Task<AuthResult> task) {
+                                    hideProgressDialog();
                                     if (task.isSuccessful()) {
 
                                         System.out.println("");
@@ -116,11 +118,12 @@ public class SignUpActivity extends BaseActivity {
         // Send verification email
         // [START send_email_verification]
         final FirebaseUser user = mFirebaseAuth.getCurrentUser();
+        showProgressDialog();
         user.sendEmailVerification()
                 .addOnCompleteListener(this, new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
-
+                        hideProgressDialog();
                         if (task.isSuccessful()) {
                             Toast.makeText(SignUpActivity.this,
                                     "Verification email sent to " + user.getEmail(),

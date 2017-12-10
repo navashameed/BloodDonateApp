@@ -4,6 +4,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.List;
@@ -17,8 +18,11 @@ import donate.tcs.com.myapplication.R;
 
 public class DonorListAdapter extends RecyclerView.Adapter<DonorListAdapter.MyViewHolder> {
 
+    private boolean isDeleteMode = false;
+
     public interface OnItemClickListener {
         void onItemClick(MemberDetails item);
+        void onDeleteItemClick(MemberDetails item);
     }
 
     private List<MemberDetails> itemsList;
@@ -26,6 +30,7 @@ public class DonorListAdapter extends RecyclerView.Adapter<DonorListAdapter.MyVi
 
     public static class MyViewHolder extends RecyclerView.ViewHolder {
         public TextView name, id, bloodGroup, phoneNumber;
+        public ImageView deleteBtn;
 
         public MyViewHolder(View view) {
             super(view);
@@ -33,6 +38,7 @@ public class DonorListAdapter extends RecyclerView.Adapter<DonorListAdapter.MyVi
             id = view.findViewById(R.id.empid);
             bloodGroup = view.findViewById(R.id.group);
             phoneNumber = view.findViewById(R.id.contact_number);
+            deleteBtn = view.findViewById(R.id.delete_button);
         }
     }
 
@@ -71,10 +77,28 @@ public class DonorListAdapter extends RecyclerView.Adapter<DonorListAdapter.MyVi
                 listener.onItemClick(item);
             }
         });
+        holder.deleteBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                listener.onDeleteItemClick(item);
+            }
+        });
+
+        holder.deleteBtn.setVisibility(isDeleteMode? View.VISIBLE: View.GONE);
     }
 
     @Override
     public int getItemCount() {
         return itemsList.size();
+    }
+
+    public void setDeleteMode() {
+        isDeleteMode = true;
+        notifyDataSetChanged();
+    }
+
+    public void resetDeleteMode() {
+        isDeleteMode = false;
+        notifyDataSetChanged();
     }
 }

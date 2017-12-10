@@ -46,6 +46,8 @@ public class ShowGroupsActivity extends BaseActivity {
     //DatabaseHelper dbHelper;
     DataBaseRoomHelper dataBaseRoomHelper;
     final List<MemberDetails> memberDetailsList = new ArrayList<>();
+    private boolean isDeleteMode = false;
+    private MenuItem deleteItem;
 
 
     @Override
@@ -70,10 +72,44 @@ public class ShowGroupsActivity extends BaseActivity {
         mAdapter = new DonorListAdapter(memberDetailsList, new DonorListAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(MemberDetails item) {
+                //TODO SHow the dialog for calling and sms
+            }
 
+            @Override
+            public void onDeleteItemClick(MemberDetails item) {
+                deleteItem(item.employeeId);
             }
         });
         recyclerView.setAdapter(mAdapter);
+    }
+
+    private void deleteItem(final String id) {
+        final DatabaseReference myRef = FirebaseDatabase.getInstance().getReference("memberslist");
+        showProgressDialog();
+
+        myRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                hideProgressDialog();
+                memberDetailsList.clear();
+                for (DataSnapshot postSnapshot : snapshot.getChildren()) {
+                    MemberDetails memberDetails = postSnapshot.getValue(MemberDetails.class);
+                    if (memberDetails.employeeId.equals(id)) {
+                        myRef.child(id).removeValue();
+                    } else {
+                        memberDetailsList.add(memberDetails);
+                    }
+                }
+                sortList();
+                mAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                hideProgressDialog();
+                Toast.makeText(ShowGroupsActivity.this, "Failed deleting from list.", Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
     private void setData() {
@@ -95,7 +131,7 @@ public class ShowGroupsActivity extends BaseActivity {
             @Override
             public void onCancelled(DatabaseError databaseError) {
                 hideProgressDialog();
-                Toast.makeText(ShowGroupsActivity.this, "Failed fetching details from db.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(ShowGroupsActivity.this, "Failed fetching details from db.", Toast.LENGTH_LONG).show();
             }
         });
     }
@@ -104,6 +140,7 @@ public class ShowGroupsActivity extends BaseActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.menu_see_list, menu);
+        deleteItem = menu.findItem(R.id.delete_items);
         return true;
     }
 
@@ -117,6 +154,18 @@ public class ShowGroupsActivity extends BaseActivity {
             case R.id.action_add:
                 startActivity(new Intent(this, AddEntryActivity.class).putExtra("aaa", "aaa"));
                 break;
+
+            case R.id.delete_items:
+                isDeleteMode = !isDeleteMode;
+                deleteItem.setIcon(isDeleteMode ? R.drawable.ic_tick : R.drawable.ic_delete);
+
+                if (isDeleteMode) {
+                    mAdapter.setDeleteMode();
+                } else {
+                    mAdapter.resetDeleteMode();
+                }
+                break;
+
         }
         return true;
     }

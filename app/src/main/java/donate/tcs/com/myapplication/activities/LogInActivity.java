@@ -68,10 +68,12 @@ public class LogInActivity extends BaseActivity {
                     AlertDialog dialog = builder.create();
                     dialog.show();
                 } else {
+                    showProgressDialog();
                     mFirebaseAuth.signInWithEmailAndPassword(email, password)
                             .addOnCompleteListener(LogInActivity.this, new OnCompleteListener<AuthResult>() {
                                 @Override
                                 public void onComplete(@NonNull Task<AuthResult> task) {
+                                    hideProgressDialog();
                                     if (task.isSuccessful()) {
 
                                         if (checkIfEmailVerified()) {
