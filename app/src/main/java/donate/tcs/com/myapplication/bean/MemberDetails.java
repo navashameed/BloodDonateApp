@@ -4,6 +4,7 @@ import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.PrimaryKey;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import nl.qbusict.cupboard.annotation.Index;
 
@@ -21,6 +22,8 @@ public class MemberDetails {
     public String employeeId;
     public String bloodGroup;
     public String phoneNumber;
+    @Nullable
+    public String emailId;
 
 
     public MemberDetails() {
@@ -33,5 +36,15 @@ public class MemberDetails {
         this.employeeId = employeeId;
         this.bloodGroup = bloodGroup;
         this.phoneNumber = phoneNumber;
+    }
+
+    @Ignore
+    public MemberDetails(@NonNull Long _id, String name, String employeeId, String bloodGroup, String phoneNumber, String emailId) {
+        this._id = _id;
+        this.name = name;
+        this.employeeId = employeeId;
+        this.bloodGroup = bloodGroup;
+        this.phoneNumber = phoneNumber;
+        this.emailId = emailId;
     }
 }

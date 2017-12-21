@@ -1,9 +1,12 @@
 package donate.tcs.com.myapplication.activities;
 
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.database.sqlite.SQLiteConstraintException;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
+import android.text.TextUtils;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -35,6 +38,7 @@ public class AddEntryActivity extends BaseActivity {
     private EditText nameEditText;
     private EditText empIdText;
     private EditText phoneNumberText;
+    private EditText emailIdText;
     private Button addButton;
 
     private String bloodGroup;
@@ -46,10 +50,14 @@ public class AddEntryActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.add_entry_activity);
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
         bloodTypesSpinner = findViewById(R.id.blood_groups_list);
         nameEditText = findViewById(R.id.input_name);
         empIdText = findViewById(R.id.input_emp_id);
         phoneNumberText = findViewById(R.id.input_phone_number);
+        emailIdText = findViewById(R.id.input_email_id);
         addButton = findViewById(R.id.add_entry_button);
 
         getSupportActionBar().setTitle("Add Entry");
@@ -79,6 +87,7 @@ public class AddEntryActivity extends BaseActivity {
                 String name = nameEditText.getText().toString();
                 String empId = empIdText.getText().toString();
                 String phoneNumber = phoneNumberText.getText().toString();
+                String emailId = emailIdText.getText().toString();
                 if (name.isEmpty()) {
                     Toast.makeText(AddEntryActivity.this, "Please enter the name", Toast.LENGTH_SHORT).show();
                     return;
@@ -91,13 +100,31 @@ public class AddEntryActivity extends BaseActivity {
                     Toast.makeText(AddEntryActivity.this, "Blood Group is mandatory. Please select one", Toast.LENGTH_SHORT).show();
                     return;
                 }
+                if (emailId.length() > 0 && !isValidEmail(emailId)) {
+                    Toast.makeText(AddEntryActivity.this, "Please enter a valid email id.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
 
                 //insertDataToDatabase(empId, name, bloodGroup, phoneNumber );
                 //insertToRoomDb(empId, name, bloodGroup, phoneNumber );
-                insertToFirebaseDb(empId, name, bloodGroup, phoneNumber);
+                insertToFirebaseDb(empId, name, bloodGroup, phoneNumber, emailId);
 
             }
         });
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                finish();
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    public final static boolean isValidEmail(CharSequence target) {
+        return !TextUtils.isEmpty(target) && android.util.Patterns.EMAIL_ADDRESS.matcher(target).matches();
     }
 
     @Override
@@ -105,22 +132,21 @@ public class AddEntryActivity extends BaseActivity {
         super.onResume();
     }
 
-    private void insertToFirebaseDb(String empId, final String name, String bloodGroup, String phoneNumber) {
-        MemberDetails memberDetails = new MemberDetails(Long.valueOf(empId), name, empId, bloodGroup, phoneNumber);
+    private void insertToFirebaseDb(String empId, final String name, String bloodGroup, String phoneNumber, String emailId) {
+        MemberDetails memberDetails = new MemberDetails(Long.valueOf(empId), name, empId, bloodGroup, phoneNumber, emailId);
 
         mDatabase.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 hideProgressDialog();
 
-                if(getIntent().getExtras() !=null && getIntent().getExtras().containsKey("aaa")){
+                if (getIntent().getExtras() != null && getIntent().getExtras().containsKey("aaa")) {
                     finish();
                     Toast.makeText(AddEntryActivity.this,
                             "User added successfully",
                             Toast.LENGTH_SHORT).show();
-                }
-                else{
-                    showDialog("Success", "User " +"'"+name+ "'"+ " successfully added to the group");
+                } else {
+                    showDialog("Success", "User " + "'" + name + "'" + " successfully added to the group");
                 }
             }
 
@@ -152,7 +178,7 @@ public class AddEntryActivity extends BaseActivity {
 
         showProgressDialog();
 
-        mDatabase.child("memberslist").child(memberDetails.employeeId).setValue(memberDetails);
+        mDatabase.child("memberslist").child(memberDetails.phoneNumber).setValue(memberDetails);
     }
 
 //    private void insertDataToDatabase(String empId, String name, String bloodGroup, String phoneNumber) {

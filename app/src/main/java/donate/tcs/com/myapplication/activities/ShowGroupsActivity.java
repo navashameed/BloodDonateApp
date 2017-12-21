@@ -1,7 +1,9 @@
 package donate.tcs.com.myapplication.activities;
 
+import android.annotation.SuppressLint;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v7.app.AlertDialog;
@@ -54,7 +56,10 @@ public class ShowGroupsActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.see_groups_activity);
-        getSupportActionBar().setTitle("See List");
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setTitle("Donors List");
+
         recyclerView = findViewById(R.id.recycler_view);
         groupTitle = findViewById(R.id.group_title);
         groupTitle.setText("All");
@@ -71,13 +76,54 @@ public class ShowGroupsActivity extends BaseActivity {
         setData();
         mAdapter = new DonorListAdapter(memberDetailsList, new DonorListAdapter.OnItemClickListener() {
             @Override
-            public void onItemClick(MemberDetails item) {
+            public void onItemClick(final MemberDetails item) {
                 //TODO SHow the dialog for calling and sms
+                CharSequence waysToContact[] = new CharSequence[]{"Call", "Sms", "Email"};
+
+                if (!isDeleteMode) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(ShowGroupsActivity.this);
+                    builder.setTitle("How to contact");
+                    builder.setItems(waysToContact, new DialogInterface.OnClickListener() {
+                        @SuppressLint("MissingPermission")
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            switch (which) {
+                                case 0:// call
+                                    //item.phoneNumber
+
+                                    String uri = "tel:" + item.phoneNumber.trim();
+                                    Intent intent = new Intent(Intent.ACTION_CALL);
+                                    intent.setData(Uri.parse(uri));
+                                    startActivity(intent);
+                                    break;
+                                case 1:// sms
+                                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.fromParts("sms", item.phoneNumber, null)));
+                                    break;
+                                case 2:// email
+                                    //item.emailId, if null show dialog, "email not available"
+                                    if (item.emailId.equals("null") || item.emailId.isEmpty()) {
+                                        Toast.makeText(ShowGroupsActivity.this, "Email not found", Toast.LENGTH_LONG).show();
+                                    } else {
+                                        Intent emailIntent = new Intent(Intent.ACTION_SEND);
+                                        emailIntent.putExtra(android.content.Intent.EXTRA_EMAIL,
+                                                new String[]{item.emailId});
+                                        emailIntent.setType("text/plain");
+                                        emailIntent.putExtra(Intent.EXTRA_SUBJECT, "Blood requirement");
+                                        startActivity(emailIntent);
+                                    }
+
+                                    break;
+
+                            }
+                        }
+                    });
+                    builder.show();
+                }
             }
 
             @Override
             public void onDeleteItemClick(MemberDetails item) {
-                deleteItem(item.employeeId);
+                deleteItem(item.phoneNumber);
             }
         });
         recyclerView.setAdapter(mAdapter);
@@ -94,7 +140,7 @@ public class ShowGroupsActivity extends BaseActivity {
                 memberDetailsList.clear();
                 for (DataSnapshot postSnapshot : snapshot.getChildren()) {
                     MemberDetails memberDetails = postSnapshot.getValue(MemberDetails.class);
-                    if (memberDetails.employeeId.equals(id)) {
+                    if (memberDetails.phoneNumber.equals(id)) {
                         myRef.child(id).removeValue();
                     } else {
                         memberDetailsList.add(memberDetails);
@@ -147,6 +193,10 @@ public class ShowGroupsActivity extends BaseActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
+            case android.R.id.home:
+                finish();
+                return true;
+
             case R.id.action_filter:
                 showFilters();
                 break;
@@ -166,8 +216,30 @@ public class ShowGroupsActivity extends BaseActivity {
                 }
                 break;
 
+            case R.id.email:
+                String[] emailList = new String[memberDetailsList.size()];
+                for (int i = 0; i < memberDetailsList.size(); i++) {
+                    String emailId = memberDetailsList.get(i).emailId;
+                    if(!emailId.equals("null")) {
+                        emailList[i] = memberDetailsList.get(i).emailId;
+                    }
+                }
+
+                Intent emailIntent = new Intent(Intent.ACTION_SEND);
+                emailIntent.putExtra(android.content.Intent.EXTRA_EMAIL,
+                        emailList);
+                emailIntent.setType("text/plain");
+                emailIntent.putExtra(Intent.EXTRA_SUBJECT, "Blood requirement");
+                startActivity(emailIntent);
+                break;
+
+
         }
         return true;
+    }
+
+    private void sentEmailToCurrentSelectedMembers() {
+
     }
 
     private void showFilters() {

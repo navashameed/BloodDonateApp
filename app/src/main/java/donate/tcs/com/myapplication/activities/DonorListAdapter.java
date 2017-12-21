@@ -29,7 +29,7 @@ public class DonorListAdapter extends RecyclerView.Adapter<DonorListAdapter.MyVi
     private OnItemClickListener listener;
 
     public static class MyViewHolder extends RecyclerView.ViewHolder {
-        public TextView name, id, bloodGroup, phoneNumber;
+        public TextView name, id, bloodGroup, phoneNumber, emailId;
         public ImageView deleteBtn;
 
         public MyViewHolder(View view) {
@@ -39,6 +39,7 @@ public class DonorListAdapter extends RecyclerView.Adapter<DonorListAdapter.MyVi
             bloodGroup = view.findViewById(R.id.group);
             phoneNumber = view.findViewById(R.id.contact_number);
             deleteBtn = view.findViewById(R.id.delete_button);
+            emailId = view.findViewById(R.id.email_id);
         }
     }
 
@@ -85,6 +86,14 @@ public class DonorListAdapter extends RecyclerView.Adapter<DonorListAdapter.MyVi
         });
 
         holder.deleteBtn.setVisibility(isDeleteMode? View.VISIBLE: View.GONE);
+
+        if(item.emailId.equals("null") || item.emailId.isEmpty()){
+            holder.emailId.setVisibility(View.GONE);
+        }
+        else{
+            holder.emailId.setVisibility(View.VISIBLE);
+            holder.emailId.setText("Email: " + item.emailId);
+        }
     }
 
     @Override

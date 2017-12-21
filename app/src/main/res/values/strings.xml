@@ -27,5 +27,8 @@
     <string name="sign_up_text">Sign Up!</string>
     <string name="title_activity_login">Sign in</string>
     <string name="add_item">Add New Item</string>
+
     <string name="action_logout">Logout</string>
+    <string name="action_share_list">Share list</string>
+    <string name="action_import_data">Import data</string>
 </resources>

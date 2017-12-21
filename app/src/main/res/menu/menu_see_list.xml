@@ -3,21 +3,27 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/email"
+        app:showAsAction="always"
+        android:icon="@drawable/ic_email"
+        android:title="Email"/>
+
+    <item
         android:id="@+id/action_filter"
         app:showAsAction="always"
         android:icon="@drawable/ic_filter_action"
-        android:title="Refresh"/>
+        android:title="Filter"/>
 
     <item
         android:id="@+id/action_add"
         app:showAsAction="always"
         android:icon="@drawable/ic_plus"
-        android:title="Refresh"/>
+        android:title="Add Item"/>
 
     <item
         android:id="@+id/delete_items"
         android:icon="@drawable/ic_delete"
-        android:title="Shop"
+        android:title="Delete Item"
         app:showAsAction="always" />
 
 </menu>
