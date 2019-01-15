@@ -73,11 +73,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public List<String> getExistingIds(){
         List<String> idsList = new ArrayList<>();
         idsList.clear();
-        List<MemberDetails> memberDetailsList = cupboard().withDatabase(getReadableDatabase()).query(MemberDetails.class).list();
-        for(MemberDetails entry: memberDetailsList){
-           idsList.add(entry.employeeId);
+        try {
+            List<MemberDetails> memberDetailsList = cupboard().withDatabase(getReadableDatabase()).query(MemberDetails.class).list();
+            for(MemberDetails entry: memberDetailsList){
+               idsList.add(entry.employeeId);
+            }
+            return idsList;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ArrayList<>();
         }
-        return idsList;
     }
 
 }
